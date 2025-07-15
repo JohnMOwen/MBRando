@@ -91,9 +91,9 @@ Temp
 *.ide
 *.lock
 *.dwlt
-Unity-Project/.idea/
-Unity-Project/.vscode/
-Unity-Project/Logs/
+Millennium Blades randomizer/.idea/
+Millennium Blades randomizer/.vscode/
+Millennium Blades randomizer/Logs/
 
 
 # =========================== #
