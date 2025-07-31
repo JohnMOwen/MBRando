@@ -11,6 +11,8 @@ public class Expansion
     [XmlArrayItem("CardSet")]
     public CardSet[] mySets;
 
+    public List<int> mySetsList = new List<int>();
+
     [XmlIgnore]
     public bool IncludeExpansion = true;
 
