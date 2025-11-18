@@ -7,15 +7,15 @@ public class CardSet
 
     public enum TypeOfSet
     {
-        Core,
-        Starter,
-        Expansion,
-        Premium,
-        Master,
-        BronzePromo,
-        SilverPromo,
-        GoldPromo,
-        Character
+        Core = 1,
+        Starter = 2,
+        Expansion = 3,
+        Premium = 4,
+        Master = 5,
+        BronzePromo = 6,
+        SilverPromo = 7,
+        GoldPromo = 8,
+        Character = 9
     }
 
     public string SetName;
