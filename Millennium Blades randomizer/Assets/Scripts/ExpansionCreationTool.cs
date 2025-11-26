@@ -11,15 +11,15 @@ public class ExpansionCreationTool : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        /*if(Input.GetKeyDown(KeyCode.Space))
         {
             CardSet gettingSet = GetCardWithID(0);
             Debug.Log(gettingSet.SetName);
             Debug.Log(gettingSet.SetType);
-        }
+        }*/
     }
 
-    public CardSet GetCardWithID(int cardID)
+    /*public CardSet GetCardWithID(int cardID)
     {
         CardSet thisSet = new CardSet();
 
@@ -60,7 +60,7 @@ public class ExpansionCreationTool : MonoBehaviour
         connection.Clone();
         
         return thisSet;
-    }
+    }*/
 
     public void CreateNewSetEntry()
     {
