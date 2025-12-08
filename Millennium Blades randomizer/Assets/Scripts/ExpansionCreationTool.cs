@@ -6,7 +6,28 @@ using Mono.Data.Sqlite;
 public class ExpansionCreationTool : MonoBehaviour
 {
     string _dbPath = Application.streamingAssetsPath + "/MBExpansions.db";
+    [SerializeField]
+    TMPro.TMP_Dropdown fullSetListDropdown, currentSetListDropdown, listOfExpansions;
+    [SerializeField]
+    TMPro.TMP_InputField expansionName;
+    [SerializeField]
+    Transform setListParent;
+    GameObject SetTextPrefab { get; }
 
+    private void Start()
+    {
+        fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetList());
+        listOfExpansions.AddOptions(DatabaseHandler.GetFullExpansionList());
+        List<CardSet> sets = DatabaseHandler.GetSetsContainedInExpansion(listOfExpansions.options[0].text);
+        List<string> setNames = new List<string>();
+        foreach (CardSet card in sets)
+        {
+            setNames.Add(card.SetName);
+            GameObject set = GameObject.Instantiate(SetTextPrefab, setListParent);
+            set.GetComponent<TMPro.TMP_Text>().text = card.SetName;
+        }
+        currentSetListDropdown.AddOptions(setNames);
+    }
 
     // Update is called once per frame
     void Update()

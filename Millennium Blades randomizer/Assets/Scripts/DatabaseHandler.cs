@@ -101,7 +101,7 @@ public static class DatabaseHandler
 
     static public List<string> GetFullSetList()
     {
-        Debug.Log("Getting list");
+        Debug.Log("Getting booster list");
         List<string> setList = new List<string>();
 
         SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
@@ -121,6 +121,28 @@ public static class DatabaseHandler
         return setList;
     }
 
+    static public List<string> GetFullExpansionList()
+    {
+        Debug.Log("Getting expansion list");
+        List<string> expansionList = new List<string>();
+
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = "SELECT ReleaseName FROM ExpansionReleases";
+
+        SqliteDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            expansionList.Add(reader.GetString(0));
+        }
+        reader.Close();
+
+        return expansionList;
+    }
+
     static public string GetExpansionTypeFromName(string expansionName)
     {
         string textToRetun = "";
@@ -129,7 +151,7 @@ public static class DatabaseHandler
 
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = string.Format("SELECT ExpansionType FROM ExpansionList WHERE ExpansioNName = '{0}'", expansionName);
+        command.CommandText = string.Format("SELECT ExpansionType FROM ExpansionList WHERE ExpansionName = '{0}'", expansionName);
         //command.CommandText = "SELECT ReleaseName FROM ExpansionReleases, json_each(ContainsExpansions) WHERE json_each.value='0'";// ExpansionID = " + cardID.ToString() + "";
         //command.CommandText = "SELECT json_extract(ContainsExpansions
         //command.CommandText = "CREATE VIRTUAL TABLE tempReleases USING ExpansionReleases";
@@ -140,6 +162,32 @@ public static class DatabaseHandler
         reader.Close();
 
         return textToRetun;
+    }
+
+    static public List<CardSet> GetSetsContainedInExpansion(string expansionName)
+    {
+        List<CardSet> setsToReturn = new List<CardSet>();
+
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("SELECT ContainsExpansions FROM ExpansionReleases WHERE ReleaseName = '{0}'", expansionName);
+
+        SqliteDataReader reader = command.ExecuteReader();
+        reader.Read();
+        string IDList = reader.GetString(0);
+
+        string[] IDListArray = IDList.Split(',');
+        reader.Close();
+
+        foreach(string ID in IDListArray)
+        {
+            setsToReturn.Add(GetCardSetWithID(int.Parse(ID)));
+        }
+
+        return setsToReturn;
     }
     #endregion
 }
