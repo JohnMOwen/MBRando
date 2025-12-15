@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//TODO Add SELECT checkers to all UPDATE calls
 public static class DatabaseHandler
 {
     static string _dbPath = Application.streamingAssetsPath + "/MBExpansions.db";
@@ -29,6 +30,52 @@ public static class DatabaseHandler
         //yield return new WaitForEndOfFrame();
     }
 
+    static public void AddExpansionToDatabase(string expansionName)
+    {
+        using var connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        using var trans = connection.BeginTransaction();// Async();
+
+        //await trans;
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("INSERT INTO ExpansionReleases (ReleaseName, ContainsExpasnions) VALUES('{0}', '{1}')", expansionName, "");
+        command.ExecuteNonQuery();
+        trans.Commit();
+        connection.Close();
+
+        //command.ExecuteNonQueryAsync()
+        //yield return new WaitForEndOfFrame();
+    }
+
+    static public void AddSetToExpansionList(string setID, string expansionName)
+    {
+        using var connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        using var trans = connection.BeginTransaction();// Async();
+
+        //await trans;
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("SELECT ExpansionReleases WHERE ReleaseName = '{0)'", expansionName);
+
+        SqliteDataReader reader = command.ExecuteReader();
+        if (reader.IsDBNull(0))
+            return;
+
+        if (reader.GetString(0) != "")
+            setID = "," + setID;
+
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = CONCAT(ContainsExpansions, '{0}') WHERE ReleaseName = '{1)'", setID, expansionName);
+        command.ExecuteNonQuery();
+        trans.Commit();
+        connection.Close();
+    }
     #endregion
 
     #region updaters
@@ -44,6 +91,23 @@ public static class DatabaseHandler
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
         command.CommandText = string.Format("UPDATE ExpansionList SET ExpansionName = '{0}', ExpansionType = '{1}' WHERE ExpansionName = '{2}'", newName, newType, currentName);
+        command.ExecuteNonQuery();
+        trans.Commit();
+        connection.Close();
+    }
+
+    static public void UpdateExpansionNameInDatabase(string newName, string currentName)
+    {
+        using var connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        using var trans = connection.BeginTransaction();// Async();
+
+        //await trans;
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("UPDATE ExpansionReleases SET ExpansionName = '{0}' WHERE ExpansionName = '{1}'", newName, currentName);
         command.ExecuteNonQuery();
         trans.Commit();
         connection.Close();
@@ -67,6 +131,67 @@ public static class DatabaseHandler
         trans.Commit();
         connection.Close();
     }
+
+    static public void RemoveExpansionFromDatabase(string expansionName)
+    {
+        using var connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        using var trans = connection.BeginTransaction();// Async();
+
+        //await trans;
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("DELETE FROM ExpansionReleases WHERE ReleaseName = '{0}'", expansionName);
+        command.ExecuteNonQuery();
+        trans.Commit();
+        connection.Close();
+    }
+
+    //TODO: If we don't need setID to be an int, make it a string
+    static public void RemoveSetFromExpansion(string setID, string expansionName)
+    {
+        List<string> IDs = GetSetIDsContainedInExpansionAsList(expansionName);
+        if (IDs.Count == 0 || !IDs.Contains(setID))
+            return;
+
+        IDs.Remove(setID);
+
+        string newIDList = "";
+
+        for (int i = 0; i < IDs.Count; i++)
+        {
+            if (i > 0)
+                newIDList += ",";
+
+            newIDList = IDs[i].ToString();
+        }
+
+
+        using var connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        using var trans = connection.BeginTransaction();// Async();
+
+        //await trans;
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = '{0}') WHERE ReleaseName = '{1)'", newIDList, expansionName);
+        command.ExecuteNonQuery();
+        trans.Commit();
+        connection.Close();
+    }
+    static public void RemoveSetFromAllExpansions(string setID)
+    {
+        List<string> expansionList = GetExpansionsThatContainID(setID);
+        foreach (string expansion in expansionList)
+        {
+            RemoveSetFromExpansion(setID, expansion);
+        }
+    }
+
     #endregion
 
     #region getters
@@ -97,6 +222,23 @@ public static class DatabaseHandler
         Expansion thisExpansion = new Expansion();
 
         return thisSet;
+    }
+
+    static public string GetSetIDFromName(string setName)
+    {
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = "SELECT ExpansionID FROM ExpansionList WHERE ExpansionName = { " + setName + "";
+
+        SqliteDataReader reader = command.ExecuteReader();
+        reader.Read();
+        string IDToReturn = reader.GetString(0);
+        reader.Close();
+        
+        return IDToReturn;
     }
 
     static public List<string> GetFullSetList()
@@ -164,7 +306,7 @@ public static class DatabaseHandler
         return textToRetun;
     }
 
-    static public List<CardSet> GetSetsContainedInExpansion(string expansionName)
+    static public List<CardSet> GetSetNamesContainedInExpansion(string expansionName)
     {
         List<CardSet> setsToReturn = new List<CardSet>();
 
@@ -177,6 +319,10 @@ public static class DatabaseHandler
 
         SqliteDataReader reader = command.ExecuteReader();
         reader.Read();
+        if (reader.IsDBNull(0))
+        {
+            return setsToReturn;
+        }
         string IDList = reader.GetString(0);
 
         string[] IDListArray = IDList.Split(',');
@@ -188,6 +334,76 @@ public static class DatabaseHandler
         }
 
         return setsToReturn;
+    }
+
+    static public List<string> GetSetIDsContainedInExpansionAsList(string expansionName)
+    {
+        List<string> setsToReturn = new List<string>();
+
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("SELECT ContainsExpansions FROM ExpansionReleases WHERE ReleaseName = '{0}'", expansionName);
+
+        SqliteDataReader reader = command.ExecuteReader();
+        reader.Read();
+        if (reader.IsDBNull(0))
+        {
+            return setsToReturn;
+        }
+        string IDList = reader.GetString(0);
+
+        string[] IDListArray = IDList.Split(',');
+        reader.Close();
+
+        foreach (string ID in IDListArray)
+        {
+            setsToReturn.Add(ID);
+        }
+
+        return setsToReturn;
+    }
+
+    static public string GetSetIDsContainedInExpansionAsString(string expansionName)
+    {
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("SELECT ContainsExpansions FROM ExpansionReleases WHERE ReleaseName = '{0}'", expansionName);
+
+        SqliteDataReader reader = command.ExecuteReader();
+        reader.Read();
+        if (reader.IsDBNull(0))
+        {
+            return null;
+        }
+        return reader.GetString(0);
+    }
+
+    static public List<string> GetExpansionsThatContainID(string ID)
+    {
+        Debug.Log("Getting expansion list");
+        List<string> expansionList = new List<string>();
+
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = "SELECT ReleaseName FROM ExpansionReleases WHERE ContainsExpansions LIKE '" + ID + "'";
+
+        SqliteDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            expansionList.Add(reader.GetString(0));
+        }
+        reader.Close();
+
+        return expansionList;
     }
     #endregion
 }

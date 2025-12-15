@@ -18,7 +18,7 @@ public class ExpansionCreationTool : MonoBehaviour
     {
         fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetList());
         listOfExpansions.AddOptions(DatabaseHandler.GetFullExpansionList());
-        List<CardSet> sets = DatabaseHandler.GetSetsContainedInExpansion(listOfExpansions.options[0].text);
+        List<CardSet> sets = DatabaseHandler.GetSetNamesContainedInExpansion(listOfExpansions.options[0].text);
         List<string> setNames = new List<string>();
         foreach (CardSet card in sets)
         {
@@ -86,5 +86,10 @@ public class ExpansionCreationTool : MonoBehaviour
     public void CreateNewSetEntry()
     {
 
+    }
+
+    public void RemoveExpansionFromDatabase()
+    {
+        
     }
 }
