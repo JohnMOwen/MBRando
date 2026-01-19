@@ -52,6 +52,8 @@ public static class DatabaseHandler
 
     static public void AddSetToExpansionList(string setID, string expansionName)
     {
+        //string IDs = GetSetIDsContainedInExpansionAsString(expansionName);
+
         using var connection = new SqliteConnection($"URI=file:{_dbPath}");
         connection.Open();
 
@@ -60,20 +62,23 @@ public static class DatabaseHandler
         //await trans;
 
         SqliteCommand command = connection.CreateCommand();
+        //command.CommandType = System.Data.CommandType.Text;
+        //command.CommandText = string.Format("SELECT ContainsExpansions FROM ExpansionReleases WHERE ReleaseName = '{0}'", expansionName);
+
+        //SqliteDataReader reader = command.ExecuteReader();
+        //if (IDs == null)
+            //return;
+
+        //if (IDs == "")
+            //setID = IDs + "," + setID;
+
         command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = string.Format("SELECT ExpansionReleases WHERE ReleaseName = '{0)'", expansionName);
-
-        SqliteDataReader reader = command.ExecuteReader();
-        if (reader.IsDBNull(0))
-            return;
-
-        if (reader.GetString(0) != "")
-            setID = "," + setID;
-
-        command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = CONCAT(ContainsExpansions, '{0}') WHERE ReleaseName = '{1)'", setID, expansionName);
+        command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = '{0}' WHERE ReleaseName = '{1}'", setID, expansionName);
+        //command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = CONCAT(ContainsExpansions, '{0}') WHERE ReleaseName = '{1}'", setID, expansionName);
         command.ExecuteNonQuery();
         trans.Commit();
+
+        //Debug.Log(IDs);
         connection.Close();
     }
     #endregion
@@ -178,7 +183,7 @@ public static class DatabaseHandler
 
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = '{0}') WHERE ReleaseName = '{1)'", newIDList, expansionName);
+        command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = '{0}') WHERE ReleaseName = '{1}'", newIDList, expansionName);
         command.ExecuteNonQuery();
         trans.Commit();
         connection.Close();
@@ -218,26 +223,26 @@ public static class DatabaseHandler
         //Debug.Log("set name: " + thisSet.SetName);
         //Debug.Log("set type: " + thisSet.SetType);
         reader.Close();
-
+        connection.Close();
         Expansion thisExpansion = new Expansion();
 
         return thisSet;
     }
 
-    static public string GetSetIDFromName(string setName)
+    static public int GetSetIDFromName(string setName)
     {
         SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
         connection.Open();
 
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = "SELECT ExpansionID FROM ExpansionList WHERE ExpansionName = { " + setName + "";
+        command.CommandText = "SELECT ExpansionID FROM ExpansionList WHERE ExpansionName = '" + setName + "'";
 
         SqliteDataReader reader = command.ExecuteReader();
         reader.Read();
-        string IDToReturn = reader.GetString(0);
+        int IDToReturn = reader.GetInt32(0);
         reader.Close();
-        
+        connection.Close();
         return IDToReturn;
     }
 
@@ -259,7 +264,7 @@ public static class DatabaseHandler
             setList.Add(reader.GetString(0));
         }
         reader.Close();
-
+        connection.Close();
         return setList;
     }
 
@@ -281,7 +286,7 @@ public static class DatabaseHandler
             expansionList.Add(reader.GetString(0));
         }
         reader.Close();
-
+        connection.Close();
         return expansionList;
     }
 
@@ -302,11 +307,11 @@ public static class DatabaseHandler
         reader.Read();
         textToRetun = ((CardSet.TypeOfSet)reader.GetInt32(0)).ToString();
         reader.Close();
-
+        connection.Close();
         return textToRetun;
     }
 
-    static public List<CardSet> GetSetNamesContainedInExpansion(string expansionName)
+    static public List<CardSet> GetCardSetsContainedInExpansion(string expansionName)
     {
         List<CardSet> setsToReturn = new List<CardSet>();
 
@@ -332,7 +337,7 @@ public static class DatabaseHandler
         {
             setsToReturn.Add(GetCardSetWithID(int.Parse(ID)));
         }
-
+        connection.Close();
         return setsToReturn;
     }
 
@@ -362,7 +367,7 @@ public static class DatabaseHandler
         {
             setsToReturn.Add(ID);
         }
-
+        connection.Close();
         return setsToReturn;
     }
 
@@ -381,6 +386,8 @@ public static class DatabaseHandler
         {
             return null;
         }
+
+        connection.Close();
         return reader.GetString(0);
     }
 
@@ -402,7 +409,7 @@ public static class DatabaseHandler
             expansionList.Add(reader.GetString(0));
         }
         reader.Close();
-
+        connection.Close();
         return expansionList;
     }
     #endregion

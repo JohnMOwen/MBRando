@@ -18,7 +18,7 @@ public class ExpansionCreationTool : MonoBehaviour
     {
         fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetList());
         listOfExpansions.AddOptions(DatabaseHandler.GetFullExpansionList());
-        List<CardSet> sets = DatabaseHandler.GetSetNamesContainedInExpansion(listOfExpansions.options[0].text);
+        List<CardSet> sets = DatabaseHandler.GetCardSetsContainedInExpansion(listOfExpansions.options[0].text);
         List<string> setNames = new List<string>();
         foreach (CardSet card in sets)
         {
@@ -83,13 +83,64 @@ public class ExpansionCreationTool : MonoBehaviour
         return thisSet;
     }*/
 
-    public void CreateNewSetEntry()
+    void UpdateExpansionListDropdown()
     {
+        listOfExpansions.ClearOptions();
+        listOfExpansions.AddOptions(DatabaseHandler.GetFullExpansionList());
+    }
 
+    void UpdateFullSetListDropdown()
+    {
+        fullSetListDropdown.ClearOptions();
+        fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetList());
+    }
+
+    void UpdateCurrentSetListDropdown()
+    {
+        currentSetListDropdown.ClearOptions();
+        List<CardSet> sets = DatabaseHandler.GetCardSetsContainedInExpansion(listOfExpansions.options[listOfExpansions.value].text);
+        List<string> names = new List<string>();
+        foreach (CardSet card in sets)
+        {
+            names.Add(card.SetName);
+        }
+        currentSetListDropdown.AddOptions(names);
+    }
+
+    public void CreateExpansionInDatabase()
+    {
+        DatabaseHandler.AddExpansionToDatabase(expansionName.text);
+
+        UpdateExpansionListDropdown();
     }
 
     public void RemoveExpansionFromDatabase()
     {
-        
+        DatabaseHandler.RemoveExpansionFromDatabase(listOfExpansions.options[listOfExpansions.value].text);
+
+        UpdateExpansionListDropdown();
+    }
+
+    public void UpdateExpansionNameInDatabase()
+    {
+        DatabaseHandler.UpdateExpansionNameInDatabase(expansionName.text, listOfExpansions.options[listOfExpansions.value].text);
+
+        UpdateExpansionListDropdown();
+    }
+
+    public void AddSetToExpansion()
+    {
+        DatabaseHandler.AddSetToExpansionList(DatabaseHandler.GetSetIDFromName(fullSetListDropdown.options[fullSetListDropdown.value].text).ToString(), listOfExpansions.options[listOfExpansions.value].text);
+
+        UpdateCurrentSetListDropdown();
+        UpdateFullSetListDropdown();
+    }
+
+    public void RemoveSetFromExpansion()
+    {
+        DatabaseHandler.RemoveSetFromExpansion(DatabaseHandler.GetSetIDFromName(currentSetListDropdown.options[currentSetListDropdown.value].text).ToString(), listOfExpansions.options[listOfExpansions.value].text);
+
+        UpdateCurrentSetListDropdown();
+        UpdateFullSetListDropdown();
     }
 }

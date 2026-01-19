@@ -38,7 +38,7 @@ public class SetCreationTool : MonoBehaviour
 
     public void RemoveSetFromDatabase()
     {
-        DatabaseHandler.RemoveSetFromAllExpansions(DatabaseHandler.GetSetIDFromName(setListDropdown.options[setListDropdown.value].text));
+        DatabaseHandler.RemoveSetFromAllExpansions(DatabaseHandler.GetSetIDFromName(setListDropdown.options[setListDropdown.value].text).ToString());
 
         DatabaseHandler.RemoveSetFromDatabase(setListDropdown.options[setListDropdown.value].text);
 
