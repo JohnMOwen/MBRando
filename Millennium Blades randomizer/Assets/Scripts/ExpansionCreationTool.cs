@@ -5,14 +5,15 @@ using Mono.Data.Sqlite;
 
 public class ExpansionCreationTool : MonoBehaviour
 {
-    string _dbPath = Application.streamingAssetsPath + "/MBExpansions.db";
+    readonly string _dbPath = Application.streamingAssetsPath + "/MBExpansions.db";
     [SerializeField]
     TMPro.TMP_Dropdown fullSetListDropdown, currentSetListDropdown, listOfExpansions;
     [SerializeField]
     TMPro.TMP_InputField expansionName;
     [SerializeField]
     Transform setListParent;
-    GameObject SetTextPrefab { get; }
+    [SerializeField]
+    GameObject SetTextPrefab;
 
     private void Start()
     {
@@ -131,7 +132,7 @@ public class ExpansionCreationTool : MonoBehaviour
     public void AddSetToExpansion()
     {
         DatabaseHandler.AddSetToExpansionList(DatabaseHandler.GetSetIDFromName(fullSetListDropdown.options[fullSetListDropdown.value].text).ToString(), listOfExpansions.options[listOfExpansions.value].text);
-
+        //DatabaseHandler.AddSetToExpansionList("1", "Core");
         UpdateCurrentSetListDropdown();
         UpdateFullSetListDropdown();
     }

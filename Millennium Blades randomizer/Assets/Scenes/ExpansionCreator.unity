@@ -4460,6 +4460,7 @@ MonoBehaviour:
   listOfExpansions: {fileID: 1478847713}
   expansionName: {fileID: 872400033}
   setListParent: {fileID: 2140876561}
+  SetTextPrefab: {fileID: 8825857189264403685, guid: 5a97914bb9902b0459315b15a1af5aac, type: 3}
 --- !u!1 &1494031765
 GameObject:
   m_ObjectHideFlags: 0

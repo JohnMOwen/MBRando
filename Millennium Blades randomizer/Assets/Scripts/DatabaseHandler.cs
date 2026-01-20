@@ -41,7 +41,7 @@ public static class DatabaseHandler
 
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = string.Format("INSERT INTO ExpansionReleases (ReleaseName, ContainsExpasnions) VALUES('{0}', '{1}')", expansionName, "");
+        command.CommandText = string.Format("INSERT INTO ExpansionReleases (ReleaseName, ContainsExpansions) VALUES('{0}', '{1}')", expansionName, "");
         command.ExecuteNonQuery();
         trans.Commit();
         connection.Close();
@@ -52,7 +52,7 @@ public static class DatabaseHandler
 
     static public void AddSetToExpansionList(string setID, string expansionName)
     {
-        //string IDs = GetSetIDsContainedInExpansionAsString(expansionName);
+        string IDs = GetSetIDsContainedInExpansionAsString(expansionName);
 
         using var connection = new SqliteConnection($"URI=file:{_dbPath}");
         connection.Open();
@@ -69,8 +69,8 @@ public static class DatabaseHandler
         //if (IDs == null)
             //return;
 
-        //if (IDs == "")
-            //setID = IDs + "," + setID;
+        if (IDs != "")
+            setID = IDs + "," + setID;
 
         command.CommandType = System.Data.CommandType.Text;
         command.CommandText = string.Format("UPDATE ExpansionReleases SET ContainsExpansions = '{0}' WHERE ReleaseName = '{1}'", setID, expansionName);
@@ -326,6 +326,8 @@ public static class DatabaseHandler
         reader.Read();
         if (reader.IsDBNull(0))
         {
+            reader.Close();
+            connection.Close();
             return setsToReturn;
         }
         string IDList = reader.GetString(0);
@@ -386,9 +388,11 @@ public static class DatabaseHandler
         {
             return null;
         }
+        string SetIDS = reader.GetString(0);
+
 
         connection.Close();
-        return reader.GetString(0);
+        return SetIDS;
     }
 
     static public List<string> GetExpansionsThatContainID(string ID)
