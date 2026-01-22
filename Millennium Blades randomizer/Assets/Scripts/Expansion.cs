@@ -7,13 +7,10 @@ public class Expansion
 {
     public string ExpansionName;
 
-    [XmlArray("Set_List")]
-    [XmlArrayItem("CardSet")]
     public CardSet[] mySets;
 
     public List<int> mySetsList = new List<int>();
 
-    [XmlIgnore]
     public bool IncludeExpansion = true;
 
     public void SetToInclude(bool include)

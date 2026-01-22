@@ -1419,6 +1419,12 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Character
       m_Image: {fileID: 0}
+    - m_Text: Team Power
+      m_Image: {fileID: 0}
+    - m_Text: Boss
+      m_Image: {fileID: 0}
+    - m_Text: Metagame
+      m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []

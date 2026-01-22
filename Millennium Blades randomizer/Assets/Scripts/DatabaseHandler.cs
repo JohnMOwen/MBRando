@@ -358,6 +358,8 @@ public static class DatabaseHandler
         reader.Read();
         if (reader.IsDBNull(0))
         {
+            reader.Close() ;
+            connection.Close();
             return setsToReturn;
         }
         string IDList = reader.GetString(0);
@@ -386,11 +388,13 @@ public static class DatabaseHandler
         reader.Read();
         if (reader.IsDBNull(0))
         {
+            reader.Close();
+            connection.Close();
             return null;
         }
         string SetIDS = reader.GetString(0);
 
-
+        reader.Close();
         connection.Close();
         return SetIDS;
     }

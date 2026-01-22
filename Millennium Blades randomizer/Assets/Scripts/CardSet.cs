@@ -15,18 +15,20 @@ public class CardSet
         BronzePromo = 6,
         SilverPromo = 7,
         GoldPromo = 8,
-        Character = 9
+        Character = 9,
+        TeamPower = 10,
+        Boss = 11,
+        Metagame = 12
     }
 
     public string SetName;
     public TypeOfSet SetType;
 
-    [System.Xml.Serialization.XmlIgnore]
     public bool IncludeCardSet = true;
 
     public void SetInclude(bool include)
     {
         IncludeCardSet = include;
-        System.Array.Find(SelectionHandler.instance.scrollViewContent.GetComponentsInChildren<TMPro.TMP_Text>(), x => x.text == SetName).transform.GetComponentInParent<UnityEngine.UI.Toggle>().SetIsOnWithoutNotify(IncludeCardSet);
+        System.Array.Find(GameCreationTool.instance.scrollViewContent.GetComponentsInChildren<TMPro.TMP_Text>(), x => x.text == SetName).transform.GetComponentInParent<UnityEngine.UI.Toggle>().SetIsOnWithoutNotify(IncludeCardSet);
     }
 }
