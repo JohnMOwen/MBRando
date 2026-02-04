@@ -69,7 +69,7 @@ public static class DatabaseHandler
         //if (IDs == null)
             //return;
 
-        if (IDs != "")
+        if (IDs != null && IDs != "")
             setID = IDs + "," + setID;
 
         command.CommandType = System.Data.CommandType.Text;
@@ -200,7 +200,7 @@ public static class DatabaseHandler
     #endregion
 
     #region getters
-    static public CardSet GetCardSetWithID(int cardID)
+    static public CardSet GetCardSetWithID(int cardID, int setType = -1)
     {
         CardSet thisSet = new CardSet();
 
@@ -209,7 +209,10 @@ public static class DatabaseHandler
 
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
-        command.CommandText = "SELECT ExpansionName, ExpansionType FROM ExpansionList WHERE ExpansionID = " + cardID.ToString() + "";
+        if(setType > 0)
+            command.CommandText = string.Format("SELECT ExpansionName, ExpansionType FROM ExpansionList WHERE ExpansionID = '{0}' AND ExpansionType = '{1}'", cardID.ToString(), setType.ToString());
+        else
+            command.CommandText = "SELECT ExpansionName, ExpansionType FROM ExpansionList WHERE ExpansionID = " + cardID.ToString() + "";
         //command.CommandText = "SELECT ReleaseName FROM ExpansionReleases, json_each(ContainsExpansions) WHERE json_each.value='0'";// ExpansionID = " + cardID.ToString() + "";
         //command.CommandText = "SELECT json_extract(ContainsExpansions
         //command.CommandText = "CREATE VIRTUAL TABLE tempReleases USING ExpansionReleases";
@@ -257,6 +260,31 @@ public static class DatabaseHandler
         SqliteCommand command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;
         command.CommandText = "SELECT ExpansionName FROM ExpansionList";
+
+        SqliteDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            setList.Add(reader.GetString(0));
+        }
+        reader.Close();
+        connection.Close();
+        return setList;
+    }
+
+    static public List<string> GetFullSetListFilterByType(int setType)
+    {
+        Debug.Log("Getting booster list");
+        List<string> setList = new List<string>();
+
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        if(setType > 0)
+            command.CommandText = string.Format("SELECT ExpansionName FROM ExpansionList WHERE ExpansionType = '{0}'", setType.ToString());
+        else
+            command.CommandText = "SELECT ExpansionName FROM ExpansionList";
 
         SqliteDataReader reader = command.ExecuteReader();
         while (reader.Read())
@@ -324,7 +352,7 @@ public static class DatabaseHandler
 
         SqliteDataReader reader = command.ExecuteReader();
         reader.Read();
-        if (reader.IsDBNull(0))
+        if (reader.IsDBNull(0) || reader.GetString(0) == "")
         {
             reader.Close();
             connection.Close();
@@ -343,6 +371,38 @@ public static class DatabaseHandler
         return setsToReturn;
     }
 
+    static public List<CardSet> GetCardSetsContainedInExpansionFilterBySetType(string expansionName, int setType)
+    {
+        List<CardSet> setsToReturn = new List<CardSet>();
+
+        SqliteConnection connection = new SqliteConnection($"URI=file:{_dbPath}");
+        connection.Open();
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = string.Format("SELECT ContainsExpansions FROM ExpansionReleases WHERE ReleaseName = '{0}'", expansionName);
+
+        SqliteDataReader reader = command.ExecuteReader();
+        reader.Read();
+        if (reader.IsDBNull(0) || reader.GetString(0) == "")
+        {
+            reader.Close();
+            connection.Close();
+            return setsToReturn;
+        }
+        string IDList = reader.GetString(0);
+
+        string[] IDListArray = IDList.Split(',');
+        reader.Close();
+
+        foreach (string ID in IDListArray)
+        {
+            setsToReturn.Add(GetCardSetWithID(int.Parse(ID), setType));
+        }
+        connection.Close();
+        return setsToReturn;
+    }
+
     static public List<string> GetSetIDsContainedInExpansionAsList(string expansionName)
     {
         List<string> setsToReturn = new List<string>();
@@ -356,7 +416,7 @@ public static class DatabaseHandler
 
         SqliteDataReader reader = command.ExecuteReader();
         reader.Read();
-        if (reader.IsDBNull(0))
+        if (reader.IsDBNull(0) || reader.GetString(0) == "")
         {
             reader.Close() ;
             connection.Close();
@@ -386,7 +446,7 @@ public static class DatabaseHandler
 
         SqliteDataReader reader = command.ExecuteReader();
         reader.Read();
-        if (reader.IsDBNull(0))
+        if (reader.IsDBNull(0) || reader.GetString(0) == "")
         {
             reader.Close();
             connection.Close();

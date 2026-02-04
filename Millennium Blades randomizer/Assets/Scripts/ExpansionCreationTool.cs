@@ -7,7 +7,7 @@ public class ExpansionCreationTool : MonoBehaviour
 {
     readonly string _dbPath = Application.streamingAssetsPath + "/MBExpansions.db";
     [SerializeField]
-    TMPro.TMP_Dropdown fullSetListDropdown, currentSetListDropdown, listOfExpansions;
+    TMPro.TMP_Dropdown fullSetListDropdown, currentSetListDropdown, listOfExpansions, setTypeFilterDropdown;
     [SerializeField]
     TMPro.TMP_InputField expansionName;
     [SerializeField]
@@ -17,7 +17,7 @@ public class ExpansionCreationTool : MonoBehaviour
 
     private void Start()
     {
-        fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetList());
+        UpdateFullSetListDropdown();
         listOfExpansions.AddOptions(DatabaseHandler.GetFullExpansionList());
         List<CardSet> sets = DatabaseHandler.GetCardSetsContainedInExpansion(listOfExpansions.options[0].text);
         List<string> setNames = new List<string>();
@@ -90,20 +90,28 @@ public class ExpansionCreationTool : MonoBehaviour
         listOfExpansions.AddOptions(DatabaseHandler.GetFullExpansionList());
     }
 
-    void UpdateFullSetListDropdown()
+    public void UpdateFullSetListDropdown()
     {
         fullSetListDropdown.ClearOptions();
-        fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetList());
+        fullSetListDropdown.AddOptions(DatabaseHandler.GetFullSetListFilterByType(setTypeFilterDropdown.value));
     }
 
-    void UpdateCurrentSetListDropdown()
+    public void UpdateCurrentSetListDropdownAndDisplay()
     {
         currentSetListDropdown.ClearOptions();
         List<CardSet> sets = DatabaseHandler.GetCardSetsContainedInExpansion(listOfExpansions.options[listOfExpansions.value].text);
         List<string> names = new List<string>();
+        for (int i = setListParent.transform.childCount - 1; i >= 0; i--) 
+        {
+            Destroy(setListParent.transform.GetChild(i).gameObject);
+        }
+
         foreach (CardSet card in sets)
         {
             names.Add(card.SetName);
+            
+            GameObject set = GameObject.Instantiate(SetTextPrefab, setListParent);
+            set.GetComponent<TMPro.TMP_Text>().text = card.SetName;
         }
         currentSetListDropdown.AddOptions(names);
     }
@@ -133,15 +141,17 @@ public class ExpansionCreationTool : MonoBehaviour
     {
         DatabaseHandler.AddSetToExpansionList(DatabaseHandler.GetSetIDFromName(fullSetListDropdown.options[fullSetListDropdown.value].text).ToString(), listOfExpansions.options[listOfExpansions.value].text);
         //DatabaseHandler.AddSetToExpansionList("1", "Core");
-        UpdateCurrentSetListDropdown();
-        UpdateFullSetListDropdown();
+        UpdateCurrentSetListDropdownAndDisplay();
+        //UpdateFullSetListDropdown();
     }
 
     public void RemoveSetFromExpansion()
     {
         DatabaseHandler.RemoveSetFromExpansion(DatabaseHandler.GetSetIDFromName(currentSetListDropdown.options[currentSetListDropdown.value].text).ToString(), listOfExpansions.options[listOfExpansions.value].text);
 
-        UpdateCurrentSetListDropdown();
-        UpdateFullSetListDropdown();
+        UpdateCurrentSetListDropdownAndDisplay();
+        //UpdateFullSetListDropdown();
     }
+
+    
 }
